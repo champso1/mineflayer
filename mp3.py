@@ -72,7 +72,7 @@ def breakListener(this, sender, message, *args):
             bot.setControlState('forward', True)
             test_frames = []
             i = 0
-            for _ in range(100):
+            for _ in range(100): #change this number to have it record/test for longer
                 #every 20 iterations, test two evenly spaced (in time) frames, if they are equal, jump, otherwise, do nothing
                 #this entire thing is done weirdly and probably really poorly i think but hey it works
                 i += 1
