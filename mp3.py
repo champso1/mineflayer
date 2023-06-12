@@ -22,12 +22,20 @@ driver = webdriver.Firefox( options = firefox_options)
 RANGE_GOAL = 1
 BOT_USERNAME = 'python'
 
-plist=[]
+all_frames = []
 
 def getpov():    
     png=driver.get_screenshot_as_png()
     im = Image.open(BytesIO(png)).convert('RGB')
-    return np.asarray(im)
+    return np.array(im)
+
+def testImage(img1, img2):
+    #convert to grayscale to remove channels, flatten to made 1d
+    arr1 = np.array(cv2.cvtColor(img1, cv2.COLOR_RGB2GRAY)).flatten()
+    arr2 = np.array(cv2.cvtColor(img1, cv2.COLOR_RGB2GRAY)).flatten()
+    #sum of absolute value of difference of all corresponding points
+    sum1 = np.sum(np.abs(arr1 - arr2))
+    return True if sum1 == 0 else False #true if images are identical
     
 bot = mineflayer.createBot({
   'host': '127.0.0.1',
@@ -62,21 +70,29 @@ def breakListener(this, sender, message, *args):
         # receive the signal to start
         if 'Go' in message:
             bot.setControlState('forward', True)
-            plist.append(getpov())
-            sleep(10)
-            plist.append(getpov())
-            sleep(5)
-            plist.append(getpov())
-            bot.setControlState('forward', False)
-        
-        #1d grayscale arrays
-        img1 = np.array(cv2.cvtColor(plist[0], cv2.COLOR_RGB2GRAY)).flatten()
-        img2 = np.array(cv2.cvtColor(plist[1], cv2.COLOR_RGB2GRAY)).flatten()
-        img3 = np.array(cv2.cvtColor(plist[2], cv2.COLOR_RGB2GRAY)).flatten()
-        #ideally, img1 and img2 are the same
+            test_frames = []
+            i = 0
+            for _ in range(100):
+                #every 20 iterations, test two evenly spaced (in time) frames, if they are equal, jump, otherwise, do nothing
+                #this entire thing is done weirdly and probably really poorly i think but hey it works
+                i += 1
+                frame = getpov()
+                all_frames.append(frame)
+                if i == 10:
+                    test_frames.append(frame)
+                elif i == 20:
+                    test_frames.append(frame)
+                    if testImage(test_frames[0], test_frames[1]):
+                        bot.setControlState('jump', True)
+                        bot.setControlState('jump', False)
 
+                    test_frames.clear()
+                    i = 0
 
-        sum1 = np.sum(np.abs(img1 - img2))
-        sum2 = np.sum(np.abs(img2 - img3)) #this should be super close to 0
-        print(sum1)
-        print(sum2)
+            
+            #after loop, put everything into a file
+            out = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc(*'mpv4'), 10, (all_frames[0].shape[1], all_frames[0].shape[0]), True) #my computer gathers the frames too slowly, framerate has to be astoundingly low to be at the correct speed
+            for frame in all_frames:
+                out.write(frame)
+            out.release()
+            
