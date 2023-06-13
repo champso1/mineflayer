@@ -1,3 +1,28 @@
+'''
+script for just mineflayer
+
+from javascript import require, On
+mineflayer = require('mineflayer')
+mineflayerViewer = require('prismarine-viewer').mineflayer
+
+bot = mineflayer.createBot({
+  'host': '127.0.0.1', #can be 'localhost' as well
+  'username': 'python' #can be whatever you want
+})
+
+@On(bot, 'login') #can also be @On(bot, 'spawn') i think, but 'login' works for me so you can probably just leave it like that
+def handle(*args):
+    mineflayerViewer(bot,{'port':3007,'firstPerson':True}) 
+
+this is really all you need, do the require command for both regular mineflayer to get the bot as well as prismarine-viewer
+i guess python will automatically query some online database somewhere to get whatever files/packages or whatever, no need for npm
+you gotta also ensure that your server is running, i know thats self explanatory but twice ive spent like 10 mins trying to debug only to find that the server just wasnt running
+then you just add an event listener when the bot logs in, and execute mineflayerViewer(), 'firstPerson':False makes it a birds eye view
+port can be whatever, just put 'localhost:<port>' or '127.0.0.1:<port>' in browser, im sure you already knew that though, im just covering all the bases
+if you are having problems with just this, then maybe its OS related, in which case i can't really help, unfortunately
+
+'''
+
 from time import sleep
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
